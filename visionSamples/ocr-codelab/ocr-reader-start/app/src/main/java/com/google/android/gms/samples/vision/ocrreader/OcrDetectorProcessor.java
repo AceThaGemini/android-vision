@@ -27,7 +27,7 @@ import com.google.android.gms.vision.text.TextBlock;
  * as OcrGraphics.
  * TODO: Make this implement Detector.Processor<TextBlock> and add text to the GraphicOverlay
  */
-public class OcrDetectorProcessor {
+public class OcrDetectorProcessor implements Detector.Processor<TextBlock> {
 
     private GraphicOverlay<OcrGraphic> mGraphicOverlay;
 
@@ -36,4 +36,28 @@ public class OcrDetectorProcessor {
     }
 
     // TODO:  Once this implements Detector.Processor<TextBlock>, implement the abstract methods.
+
+    @Override
+    public void receiveDetections(Detector.Detections<TextBlock> detections) {
+        mGraphicOverlay.clear();
+
+        SparseArray<TextBlock> textBlocks = detections.getDetectedItems();
+
+        for (int i = 0; i < textBlocks.size(); i++) {
+            TextBlock text = textBlocks.get(i);
+
+            if (text != null && text.getValue() != null)
+                Log.d("DetectorProcessor", "Detected text: " + text.getValue());
+
+
+            // add text to graphic overlay
+            mGraphicOverlay.add(new OcrGraphic(mGraphicOverlay, text));
+        }
+    }
+
+
+    @Override
+    public void release() {
+        mGraphicOverlay.clear();
+    }
 }

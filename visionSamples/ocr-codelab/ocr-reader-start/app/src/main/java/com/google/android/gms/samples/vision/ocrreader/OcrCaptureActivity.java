@@ -170,8 +170,9 @@ public final class OcrCaptureActivity extends AppCompatActivity {
 
         // TODO: Create the TextRecognizer
         TextRecognizer textRecognizer = new TextRecognizer.Builder(getApplicationContext()).build();
-        // TODO: Set the TextRecognizer's Processor.
 
+        // TODO: Set the TextRecognizer's Processor.
+        textRecognizer.setProcessor(new OcrDetectorProcessor(mGraphicOverlay));
 
         // TODO: Check if the TextRecognizer is operational.
         if (!textRecognizer.isOperational()) {
