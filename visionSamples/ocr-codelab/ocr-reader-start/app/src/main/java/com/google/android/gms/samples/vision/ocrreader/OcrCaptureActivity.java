@@ -161,20 +161,43 @@ public final class OcrCaptureActivity extends AppCompatActivity {
      * Creates and starts the camera.  Note that this uses a higher resolution in comparison
      * to other detection examples to enable the ocr detector to detect small text samples
      * at long distances.
-     *
+     * <p>
      * Suppressing InlinedApi since there is a check that the minimum version is met before using
      * the constant.
      */
     @SuppressLint("InlinedApi")
     private void createCameraSource(boolean autoFocus, boolean useFlash) {
-        Context context = getApplicationContext();
 
         // TODO: Create the TextRecognizer
+        TextRecognizer textRecognizer = new TextRecognizer.Builder(getApplicationContext()).build();
         // TODO: Set the TextRecognizer's Processor.
 
+
         // TODO: Check if the TextRecognizer is operational.
+        if (!textRecognizer.isOperational()) {
+            Log.d(TAG, "Detector dependencies are not yet available.");
+
+            // check for low storage space
+            boolean hasLowStorage = registerReceiver(
+                    null,
+                    new IntentFilter(Intent.ACTION_DEVICE_STORAGE_LOW)) != null;
+
+
+            if (hasLowStorage)
+                Toast.makeText(getApplicationContext(),
+                        R.string.low_storage_error,
+                        Toast.LENGTH_SHORT).show();
+        }
+
 
         // TODO: Create the mCameraSource using the TextRecognizer.
+        mCameraSource = new CameraSource.Builder(getApplicationContext(), textRecognizer)
+                .setFacing(CameraSource.CAMERA_FACING_BACK)
+                .setFlashMode(useFlash ? Camera.Parameters.FLASH_MODE_TORCH : null)
+                .setFocusMode(autoFocus ? Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE : null)
+                .setRequestedFps(15f)
+                .setRequestedPreviewSize(1280, 1024)
+                .build();
     }
 
     /**
@@ -238,7 +261,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
         if (grantResults.length != 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             Log.d(TAG, "Camera permission granted - initialize the camera source");
             // We have permission, so create the camerasource
-            boolean autoFocus = getIntent().getBooleanExtra(AutoFocus,false);
+            boolean autoFocus = getIntent().getBooleanExtra(AutoFocus, false);
             boolean useFlash = getIntent().getBooleanExtra(UseFlash, false);
             createCameraSource(autoFocus, useFlash);
             return;
